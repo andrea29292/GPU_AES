@@ -201,6 +201,7 @@ int columns = 4; //colonne della matrice stato
 int pass_lenght; //lunghezza della password
 uChar password[16];
 uChar expanded_key[176]; //chiave calcolata dallo schedule key
+int allTestSuccess;
 
 
 //----------------------FUNZIONI AUSILIARIE---------------
@@ -452,7 +453,7 @@ void mixColumns(uChar** state) {
 
 void AES_Encrypt(int show_all, int collect_data)
 {
-	
+
 
 	int cur_round = 0;
 
@@ -513,7 +514,7 @@ void AES_Encrypt(int show_all, int collect_data)
 		printState(state);
 	}
 
-	
+
 
 }
 
@@ -578,7 +579,21 @@ uChar* readPlainText(char* file_name) {
 }
 
 
+int checkResult(uChar ** state) {
+	uChar result[] = "\x3a\xd7\x7b\xb4\x0d\x7a\x36\x60\xa8\x9e\xca\xf3\x24\x66\xef\x97";
+	//printf("ciaoo\n");
+	for (int i = 0; i < columns; i++) {
+		for (int j = 0; j < rows; j++) {
+			printf("state [j][i] = %x\n", state[j][i] );
+			printf("result [j*3+i] = %x\n", result[j * 3 + i] );
+			if (state[j][i] != result[j * 3 + i]) return 0;
 
+		}
+
+	}
+	return 1;
+
+}
 
 
 
@@ -588,7 +603,7 @@ int main(int argc, char** argv) {
 	plain_text = readPlainText("plainText.txt");
 
 	//apre o crea il file per le statistiche
-	data = fopen("scoresCPU.dat", "w");
+	
 	int collect_data = FALSE;
 	int show_all = FALSE;
 
@@ -600,7 +615,7 @@ int main(int argc, char** argv) {
 			show_all = TRUE;
 		}
 		if (strcmp(argv[i], "-c" ) == 0) {
-
+			data = fopen("scoresCPU.dat", "w");
 			collect_data = TRUE;
 		}
 	}
@@ -611,19 +626,23 @@ int main(int argc, char** argv) {
 
 	//numero di test da eseguire su diverse lunghezze
 	int vector_dim = 16 * 2;
-	int num_test = 4;
+	int num_test = 1;
 	long *test_sizes = malloc(num_test * sizeof(long));
 
-	test_sizes[0] = vector_dim * 256;
+	test_sizes[0] = vector_dim * 2;
 	test_sizes[1] = vector_dim * 512;
 	test_sizes[2] = vector_dim * 1024;
 	test_sizes[3] = vector_dim * 2048;
+	test_sizes[4] = vector_dim * 4096;
+	test_sizes[5] = vector_dim * 8192;
+	test_sizes[6] = vector_dim * 16384;
+
 
 	long double *test_res = malloc(num_test * sizeof(long double));
 	for (int cur_test = 0; cur_test < num_test; cur_test++)	{
 		long dim_test = test_sizes[cur_test] / 2;
 		printf("TEST con dimensione %d\n", dim_test );
-
+		allTestSuccess = 1;
 		clock_t start, stop;
 		start = clock();
 		for (int i = 0; i < test_sizes[cur_test] ; i += vector_dim) {
@@ -633,20 +652,23 @@ int main(int argc, char** argv) {
 			//printStateInline(state);
 
 			AES_Encrypt(show_all, collect_data);
+			//allTestSuccess = allTestSuccess && checkResult(state);
+			printStateInline(state);
 			//printf("\nCypher text:");
 			//printStateInline(state);
 		}
 		stop = clock();
 		long double elapsed_time = (stop - start) / (double) CLOCKS_PER_SEC;
 		test_res[cur_test] = elapsed_time;
+		//printf("Risultato test: %d\n", allTestSuccess );
 	}
 
-	
+
 	char string_data[5000];
 	for (int i = 0; i < num_test; ++i)	{
 		char temp[100];
-		sprintf(temp, "%d	%f\n",test_sizes[i]/2,test_res[i]);
-		strcat(string_data,temp);
+		sprintf(temp, "%d	%f\n", test_sizes[i] / 2, test_res[i]);
+		strcat(string_data, temp);
 	}
 
 	if (collect_data) fprintf(data, "%s", string_data);

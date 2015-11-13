@@ -499,7 +499,7 @@ void AES_Encrypt(int show_all, int collect_data)
 
 
 
-	printStateInline(state);
+	//printStateInline(state);
 
 	cudaFree(stateGPU);
 
