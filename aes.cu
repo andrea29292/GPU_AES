@@ -583,13 +583,16 @@ int main(int argc, char** argv) {
 
 	//numero di test da eseguire su diverse lunghezze
 	int vector_dim = 16 * 2;
-	int num_test = 4;
+	int num_test = 7;
 	long *test_sizes = (long*)malloc(num_test * sizeof(long));
 
 	test_sizes[0] = vector_dim * 128;
 	test_sizes[1] = vector_dim * 512;
 	test_sizes[2] = vector_dim * 1024;
 	test_sizes[3] = vector_dim * 2048;
+	test_sizes[4] = vector_dim * 4096;
+	test_sizes[5] = vector_dim * 8192;
+	test_sizes[6] = vector_dim * 16384;
 
 	long double *test_res = (long double*)malloc(num_test * sizeof(long double));
 	for (int cur_test = 0; cur_test < num_test; cur_test++)	{
