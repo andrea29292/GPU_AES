@@ -583,10 +583,8 @@ int checkResult(uChar ** state) {
 	uChar result[] = "\x3a\xd7\x7b\xb4\x0d\x7a\x36\x60\xa8\x9e\xca\xf3\x24\x66\xef\x97";
 	//printf("ciaoo\n");
 	for (int i = 0; i < columns; i++) {
-		for (int j = 0; j < rows; j++) {
-			printf("state [j][i] = %x\n", state[j][i] );
-			printf("result [j*3+i] = %x\n", result[j * 3 + i] );
-			if (state[j][i] != result[j * 3 + i]) return 0;
+		for (int j = 0; j < rows; j++) {	
+			if (state[j][i] != result[i *4 + j]) return 0;
 
 		}
 
@@ -602,8 +600,8 @@ int main(int argc, char** argv) {
 
 	plain_text = readPlainText("plainText.txt");
 
-	//apre o crea il file per le statistiche
 	
+
 	int collect_data = FALSE;
 	int show_all = FALSE;
 
@@ -615,6 +613,7 @@ int main(int argc, char** argv) {
 			show_all = TRUE;
 		}
 		if (strcmp(argv[i], "-c" ) == 0) {
+			//apre o crea il file per le statistiche
 			data = fopen("scoresCPU.dat", "w");
 			collect_data = TRUE;
 		}
@@ -626,10 +625,10 @@ int main(int argc, char** argv) {
 
 	//numero di test da eseguire su diverse lunghezze
 	int vector_dim = 16 * 2;
-	int num_test = 1;
+	int num_test = 7;
 	long *test_sizes = malloc(num_test * sizeof(long));
 
-	test_sizes[0] = vector_dim * 2;
+	test_sizes[0] = vector_dim * 128;
 	test_sizes[1] = vector_dim * 512;
 	test_sizes[2] = vector_dim * 1024;
 	test_sizes[3] = vector_dim * 2048;
@@ -646,21 +645,22 @@ int main(int argc, char** argv) {
 		clock_t start, stop;
 		start = clock();
 		for (int i = 0; i < test_sizes[cur_test] ; i += vector_dim) {
+
 			initStateHex(i);
 
 			//printf("\nPlain text:");
 			//printStateInline(state);
 
 			AES_Encrypt(show_all, collect_data);
-			//allTestSuccess = allTestSuccess && checkResult(state);
-			printStateInline(state);
+			allTestSuccess = allTestSuccess && checkResult(state);
+
 			//printf("\nCypher text:");
 			//printStateInline(state);
 		}
 		stop = clock();
 		long double elapsed_time = (stop - start) / (double) CLOCKS_PER_SEC;
 		test_res[cur_test] = elapsed_time;
-		//printf("Risultato test: %d\n", allTestSuccess );
+		printf("Risultato test: %d\n", allTestSuccess );
 	}
 
 
@@ -682,38 +682,8 @@ int main(int argc, char** argv) {
 	//printKey();
 
 
-	/*uChar* pass[16];
-	pass[0] = 0x20;
-	pass[1] = 0xe2;
-	pass[2] = 0x69;
-	pass[3] =  0x99;
-	pass[4] =  0xa5;
-	pass[5] =  0x20;
-	pass[6] =  0x2a;
-	pass[7] =  0x6d;
-	pass[8] =  0x65;
-	pass[9] =  0x6e;
-	pass[10] =  0x63;
-	pass[11] =  0x68;
-	pass[12] =  0x69;
-	pass[13] =  0x74;
-	pass[14] =  0x6f;
-	pass[15] =  0x2a;
 
-	printKey(pass,16);
-	printf("password: %x\n", pass[2] );*/
 
-	/* GENERATORE DI STATI PER VERIFICA
-	uChar tmp_state0[4] = {0x19,0xa0,0x9a,0xe9};
-	uChar tmp_state1[4] = {0x3d, 0xf4,0xc6,0xf8};
-	uChar tmp_state2[4] = {0xe3,0xe2,0x8d,0x48};
-	uChar tmp_state3[4] = {0xbe,0x2b,0x2a,0x08};
-
-	state[0] = tmp_state0;
-	state[1] = tmp_state1;
-	state[2] = tmp_state2;
-	state[3] = tmp_state3;
-	*/
 
 
 
