@@ -129,7 +129,7 @@ __device__ const uChar GM9[256] = {
 	0x31, 0x38, 0x23, 0x2a, 0x15, 0x1c, 0x07, 0x0e, 0x79, 0x70, 0x6b, 0x62, 0x5d, 0x54, 0x4f, 0x46
 };
 */
-uChar state[16];
+//uChar state[16];
 __device__ int bits = 128;
 int rows = 4;
 int columns = 4;
@@ -180,8 +180,7 @@ void printState(uChar* matrix) {
 	printf("\n");
 }
 
-
-int getVal(char c)
+ int getVal(char c)
 {
 	int rtVal = 0;
 
@@ -196,30 +195,29 @@ int getVal(char c)
 
 	return rtVal;
 }
-void initStateHex( int state_selected) {
+uChar* initStateHex( int state_selected) {
 
-	columns = 4;
-
+	uChar state[16];
 	int k = state_selected;
-	for (int i = 0; i < columns; i++) {
-		for (int j = 0; j < rows; j++) {
-			if (plain_text[k] == NULL) {
-				state[j * M + i] = 0;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			if (state[k] == NULL) {
+				state[j * 4 + i] = 0;
 				//esci dal for e riempi di zeri
 				//oppure riempi di zeri da qui, prova se fare null+1 è ancora null
 			}
 			else {
-				state[i * M + j] = getVal(plain_text[k]) * 16 + getVal(plain_text[k + 1]);
+				state[i * M + j] = getVal(state[k]) * 16 + getVal(state[k + 1]);
 			}
 			k += 2;
 		}
 	}
-
+	return state;
 }
 
 
 
-void readKey(char* file_name) {
+ void readKey(char* file_name) {
 	FILE *fr;
 
 	fr = fopen (file_name, "r");
@@ -309,8 +307,8 @@ void expand_key(uChar *in) {
 __device__ void subBytes(uChar* state) {
 	int sbox_r, sbox_c;
 	// indici di riga e colonna
-	int Row = blockIdx.y * blockDim.y + threadIdx.y;
-	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+	int Row = threadIdx.y;
+	int Col = threadIdx.x;
 
 	sbox_r = (state[Col * M + Row] & 0xf0) >> 4;
 	sbox_c = state[Col * M + Row] & 0x0f;
@@ -321,8 +319,8 @@ __device__ void subBytes(uChar* state) {
 
 //FUNZIONA
 __device__ void addRoundKey(uChar* state, int cur_round, uChar* expanded_keyGPU) {
-	int Row = blockIdx.y * blockDim.y + threadIdx.y;
-	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+	int Row = threadIdx.y;
+	int Col = threadIdx.x;
 	int index = Col * M + Row;
 	int val = (cur_round * 16) + index;
 
@@ -333,8 +331,8 @@ __device__ void addRoundKey(uChar* state, int cur_round, uChar* expanded_keyGPU)
 
 //FUNZIONa
 __device__ void gmixColumns(uChar* state) {
-	int r = blockIdx.y * blockDim.y + threadIdx.y;
-	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+	int r = threadIdx.y;
+	int Col = threadIdx.x;
 	int index = Col * M + r;
 	uChar new_val;
 
@@ -374,8 +372,8 @@ __device__ void shiftRow(uChar *tmp_state, uChar *state, int row_index) {
 }
 
 __device__ void shiftRows(uChar *state) {
-	int Row = blockIdx.y * blockDim.y + threadIdx.y;
-	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+	int Row = threadIdx.y;
+	int Col = threadIdx.x;
 
 	int index = Col * M + Row;
 	uChar tmp_state[16];
@@ -388,11 +386,12 @@ __device__ void shiftRows(uChar *state) {
 	}
 }
 //-----------------------------------------------------------------
-__global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_keyGPU) {
-
+__global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded_keyGPU) {
+	
+	int gridId = blockIdx.x;
 	int cur_round = 0;
-
-	addRoundKey(stateGPU, cur_round, expanded_keyGPU);
+	
+	addRoundKey(stateGPU[gridId], cur_round, expanded_keyGPU);
 
 	__syncthreads();
 	if (show_all) {
@@ -408,7 +407,7 @@ __global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_
 
 
 
-		subBytes(stateGPU);
+		subBytes(stateGPU[gridId]);
 
 		__syncthreads();
 		if (show_all) {
@@ -417,7 +416,7 @@ __global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_
 		}
 
 
-		shiftRows(stateGPU);
+		shiftRows(stateGPU[gridId]);
 		__syncthreads();
 		if (show_all) {
 			printf("After shiftRows\n");
@@ -426,7 +425,7 @@ __global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_
 
 
 
-		gmixColumns(stateGPU);
+		gmixColumns(stateGPU[gridId]);
 		__syncthreads();
 		if (show_all) {
 			printf("After mixColumns\n");
@@ -434,7 +433,7 @@ __global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_
 		}
 
 
-		addRoundKey(stateGPU, cur_round, expanded_keyGPU);
+		addRoundKey(stateGPU[gridId], cur_round, expanded_keyGPU);
 		__syncthreads();
 		if (show_all) {
 			printf("After addRroundKey\n");
@@ -445,7 +444,7 @@ __global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_
 	}
 
 
-	subBytes(stateGPU);
+	subBytes(stateGPU[gridId]);
 	__syncthreads();
 	if (show_all) {
 		printf("After SubBytes\n");
@@ -453,7 +452,7 @@ __global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_
 	}
 
 
-	shiftRows(stateGPU);
+	shiftRows(stateGPU[gridId]);
 	__syncthreads();
 	if (show_all) {
 		printf("After shiftRows\n");
@@ -461,48 +460,8 @@ __global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_
 	}
 
 
-	addRoundKey(stateGPU, cur_round, expanded_keyGPU);
+	addRoundKey(stateGPU[gridId], cur_round, expanded_keyGPU);
 	__syncthreads();
-}
-
-
-
-void AES_Encrypt(int show_all, int collect_data)
-{
-	//----------VARIABILI GPU
-	uChar *stateGPU;
-	uChar *expanded_keyGPU;
-
-	//clock_t start, stop;
-	int nBytes = N * M * sizeof(uChar);
-	// set up device
-	float dev = 0;
-	cudaSetDevice(dev);
-	// malloc device memory
-	cudaMalloc((void**) &stateGPU, nBytes);
-
-	cudaMalloc((void**) &expanded_keyGPU, 176);
-
-	cudaMemcpy(expanded_keyGPU, expanded_key, 176, cudaMemcpyHostToDevice);
-
-	cudaMemcpy(stateGPU, state, nBytes, cudaMemcpyHostToDevice);
-
-	dim3 dimBlock(TxB, TxB, 1);
-	dim3 dimGrid(ceil(N / TxB), ceil(N / TxB), 1);
-
-	//int cur_round = 0;
-
-	AESEncryptKernel <<< dimGrid, dimBlock>>>(show_all, stateGPU, expanded_keyGPU);
-
-
-	cudaMemcpy(state, stateGPU, nBytes, cudaMemcpyDeviceToHost);
-
-
-
-	//printStateInline(state);
-
-	cudaFree(stateGPU);
-
 }
 
 int checkResult(uChar * state) {
@@ -517,6 +476,57 @@ int checkResult(uChar * state) {
 	return 1;
 
 }
+
+
+
+void AES_Encrypt(int show_all, int collect_data, uChar* plain_text, int state_num)
+{
+
+	//----------VARIABILI GPU
+	uChar *expanded_keyGPU;
+	uChar **bufferGPU;
+	
+	uChar **buffer;
+	buffer = (uChar**)calloc(state_num, sizeof(uChar*));
+	for (int j= 0; j<state_num;j++){
+		buffer[j] = (uChar*)calloc(16, sizeof(uChar));
+	}
+	for(int i=0; i<state_num;i++){
+		buffer[i] = initStateHex(i);
+		}
+	//clock_t start, stop;
+	int nBytes = state_num * 16 * sizeof(uChar);
+	// set up device
+	float dev = 0;
+	cudaSetDevice(dev);
+	// malloc device memory
+	cudaMalloc((void**) &bufferGPU, nBytes);
+
+	cudaMalloc((void**) &expanded_keyGPU, 176);
+
+	cudaMemcpy(expanded_keyGPU, expanded_key, 176, cudaMemcpyHostToDevice);
+
+	cudaMemcpy(bufferGPU, buffer, nBytes, cudaMemcpyHostToDevice);
+	
+	dim3 dimBlock(TxB, TxB, 1);
+	dim3 dimGrid(state_num, 1, 1);
+
+
+
+	AESEncryptKernel <<< dimGrid,dimBlock>>>(show_all, bufferGPU, expanded_keyGPU);
+
+
+	cudaMemcpy(buffer, bufferGPU, nBytes, cudaMemcpyDeviceToHost);
+
+
+
+	
+
+	cudaFree(bufferGPU);
+	allTestSuccess = allTestSuccess && checkResult(buffer[0]);
+
+}
+
 
 uChar* readPlainText(char* file_name) {
 
@@ -605,12 +615,13 @@ int main(int argc, char** argv) {
 		start = clock();
 		for (int i = 0; i < test_sizes[cur_test] ; i += vector_dim) {
 
-			initStateHex(i);
+			//initStateHex(i);
 
 			//printStateInline(state);
 
-			AES_Encrypt(show_all, collect_data);
-			allTestSuccess = allTestSuccess && checkResult(state);
+			AES_Encrypt(show_all, collect_data, plain_text,128);
+			
+
 			//printStateInline(state);
 
 
