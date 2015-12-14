@@ -1,0 +1,6 @@
+\chapter{Introduzione}
+Il progetto da noi realizzato si pone l'obiettivo di verificare i vantaggi che l'architettura CUDA può portare nella parallelizzazione di algoritmi che presentano una sostanziosa parte seriale che può essere eseguita parallelamente. Per tale motivo si è scelto l'algoritmo Advanced Encryption Standard \textbf{(AES)} che cifra stati di dimensione fissa senza concatenare i risultati tra loro dandoci la possibilità di ottenere un buon livello di parallelizzazione.
+
+\paragraph{}In una prima fase si è implementato l'algoritmo in linguaggio c verificandone la corretta esecuzione tramite vettori di test trovati online, poi si è modificato il codice per adattarsi e sfruttare l'architettura \textbf{CUDA}. Una prima implementazione non è stata sufficiente per ottenere dei vantaggi rispetto alla versione c, questo dovuto al fatto che venivano lanciati \textbf{troppi kernel} che creando un collo di bottiglia rendevano inutile il vantaggio portato dalla parallelizzazione. Andando avanti con le varie versioni si è diminuito sostanzialmente il numero di kernel lanciati arrivando ad ottenere buoni risultati.
+
+\paragraph{} Spiegheremo quindi le caratteristiche delle varie versioni implementate concentrandoci sull'argomento \textbf{parallelizzazione} e su quali vantaggi (o svantaggi) si sono ottenuti tra una versione e l'altra.

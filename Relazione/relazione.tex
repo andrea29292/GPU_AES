@@ -180,16 +180,26 @@ stringstyle=\color[rgb]{0.639,0.082,0.082},
 \begin{titlepage}
 \begin{center}
 
-\vspace{50pt}
 
-UNIVERSIT\'A DEGLI STUDI DI MILANO
+
+\centering
+
+\includegraphics[width=1\textwidth]{img/logo.jpg}
+
 
 Dipartimento di Informatica
 \vspace{30pt}
 
+CORSO DI LAUREA MAGISTRALE IN INFORMATICA
+\vspace{30pt}
 
-RELAZIONE SU PROGETTO DI GPU COMPUTING
+
+PROGETTO DI GPU COMPUTING
 \bigskip
+
+{\huge\textbf{Parallelizzazione dell'algoritmo Advanced Encryption Standard (AES) su architettura CUDA}}
+
+\vspace{20pt}
 
 
 \centering
@@ -198,7 +208,8 @@ RELAZIONE SU PROGETTO DI GPU COMPUTING
 \bigskip
 
 
-\vspace{110pt}
+
+\vspace{20pt}
 
 \begin{tabular}{p{230pt}l}
 \textit{A cura di} & \textit{Docente} \\
@@ -207,7 +218,7 @@ RELAZIONE SU PROGETTO DI GPU COMPUTING
 \textbf{Tommaso Celata}
 
 \end{tabular}
-\vspace{65pt}
+\vspace{25pt}
 
 Anno Accademico 2015/2016
 \end{center}
@@ -216,4 +227,12 @@ Anno Accademico 2015/2016
 
 
 \tableofcontents
+
+\input{introduzione}
+\input{aes}
+\input{cuda}
+\input{cuda_aes}
+\input{risultati}
+\input{considerazioni}
+\input{bibliografia}
 \end{document}
