@@ -147,6 +147,8 @@ int pass_lenght; //lunghezza della password
 uChar password[16];
 uChar expanded_key[176]; //chiave calcolata dallo schedule key
 
+//this will be send to the
+uChar **plain_text_hex;
 
 
 //----------------------FUNZIONI AUSILIARIE---------------
@@ -180,7 +182,7 @@ void printState(uChar* matrix) {
 	printf("\n");
 }
 
- int getVal(char c)
+int getVal(char c)
 {
 	int rtVal = 0;
 
@@ -195,29 +197,31 @@ void printState(uChar* matrix) {
 
 	return rtVal;
 }
-uChar* initStateHex( int state_selected) {
 
-	uChar state[16];
+void initStateHex( int state_selected ) {
+
 	int k = state_selected;
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			if (state[k] == NULL) {
-				state[j * 4 + i] = 0;
-				//esci dal for e riempi di zeri
-				//oppure riempi di zeri da qui, prova se fare null+1 è ancora null
-			}
-			else {
-				state[i * M + j] = getVal(state[k]) * 16 + getVal(state[k + 1]);
-			}
-			k += 2;
-		}
+	int i = 0;
+	while (i < (16 * 2)) {
+		//printf("(%2x)\n", getVal(plain_text[ i + 1])+ getVal(plain_text[ i]) * 16);
+		plain_text_hex[state_selected][i / 2] = getVal(plain_text[(k * 32) + i]) * 16 + getVal(plain_text[(k * 32) + i + 1]);
+		//printf("%2x\n", state[i/2] );
+		i += 2;
 	}
-	return state;
+
+	/*for (int i = 0; i < 16; ++i)
+	{
+		printf("%2x\n", state[i] );
+	}*/
+
+	//printf("Inside init: \n" );
+	//printStateInline(state);
+	//return state;*/
 }
 
 
 
- void readKey(char* file_name) {
+void readKey(char* file_name) {
 	FILE *fr;
 
 	fr = fopen (file_name, "r");
@@ -318,19 +322,28 @@ __device__ void subBytes(uChar* state) {
 }
 
 //FUNZIONA
-__device__ void addRoundKey(uChar* state, int cur_round, uChar* expanded_keyGPU) {
+__device__ void addRoundKey(uChar** bufferGPU, int cur_round, uChar* expanded_keyGPU) {
+	
 	int Row = threadIdx.y;
 	int Col = threadIdx.x;
+	//printf("ciao\n" );
 	int index = Col * M + Row;
+	/*printf("grid: %d, index: %d \n", blockIdx.x, index );
+
+	printf("var: %2x\n", state[index] );
+	printf("qualcosa :%2x\n", state[index] );*/
+	printf("%2x\n", bufferGPU[blockIdx.x][0] );
 	int val = (cur_round * 16) + index;
 
-	state[index] = state[index] ^ expanded_keyGPU[val];
+	bufferGPU[blockIdx.x][index] = bufferGPU[blockIdx.x][index] ^ expanded_keyGPU[val];
+
 
 }
 
 
 //FUNZIONa
 __device__ void gmixColumns(uChar* state) {
+
 	int r = threadIdx.y;
 	int Col = threadIdx.x;
 	int index = Col * M + r;
@@ -387,11 +400,14 @@ __device__ void shiftRows(uChar *state) {
 }
 //-----------------------------------------------------------------
 __global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded_keyGPU) {
-	
+
+
+
 	int gridId = blockIdx.x;
 	int cur_round = 0;
-	
-	addRoundKey(stateGPU[gridId], cur_round, expanded_keyGPU);
+
+	addRoundKey(stateGPU, cur_round, expanded_keyGPU);
+
 
 	__syncthreads();
 	if (show_all) {
@@ -408,6 +424,7 @@ __global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded
 
 
 		subBytes(stateGPU[gridId]);
+
 
 		__syncthreads();
 		if (show_all) {
@@ -433,7 +450,7 @@ __global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded
 		}
 
 
-		addRoundKey(stateGPU[gridId], cur_round, expanded_keyGPU);
+		addRoundKey(stateGPU, cur_round, expanded_keyGPU);
 		__syncthreads();
 		if (show_all) {
 			printf("After addRroundKey\n");
@@ -460,7 +477,7 @@ __global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded
 	}
 
 
-	addRoundKey(stateGPU[gridId], cur_round, expanded_keyGPU);
+	addRoundKey(stateGPU, cur_round, expanded_keyGPU);
 	__syncthreads();
 }
 
@@ -485,15 +502,17 @@ void AES_Encrypt(int show_all, int collect_data, uChar* plain_text, int state_nu
 	//----------VARIABILI GPU
 	uChar *expanded_keyGPU;
 	uChar **bufferGPU;
-	
-	uChar **buffer;
-	buffer = (uChar**)calloc(state_num, sizeof(uChar*));
-	for (int j= 0; j<state_num;j++){
-		buffer[j] = (uChar*)calloc(16, sizeof(uChar));
+
+	plain_text_hex = (uChar**)calloc(state_num, sizeof(uChar*));
+
+
+	for (int i = 0; i < state_num; i++) {
+		plain_text_hex[i] = (uChar*)calloc(16, sizeof(uChar));
+		initStateHex(i);
+		//printStateInline(plain_text_hex[i]);
 	}
-	for(int i=0; i<state_num;i++){
-		buffer[i] = initStateHex(i);
-		}
+
+	
 	//clock_t start, stop;
 	int nBytes = state_num * 16 * sizeof(uChar);
 	// set up device
@@ -506,24 +525,17 @@ void AES_Encrypt(int show_all, int collect_data, uChar* plain_text, int state_nu
 
 	cudaMemcpy(expanded_keyGPU, expanded_key, 176, cudaMemcpyHostToDevice);
 
-	cudaMemcpy(bufferGPU, buffer, nBytes, cudaMemcpyHostToDevice);
-	
+	cudaMemcpy(bufferGPU, plain_text_hex, nBytes, cudaMemcpyHostToDevice);
+
 	dim3 dimBlock(TxB, TxB, 1);
 	dim3 dimGrid(state_num, 1, 1);
 
+	AESEncryptKernel <<< dimGrid, dimBlock>>>(show_all, bufferGPU, expanded_keyGPU);
 
-
-	AESEncryptKernel <<< dimGrid,dimBlock>>>(show_all, bufferGPU, expanded_keyGPU);
-
-
-	cudaMemcpy(buffer, bufferGPU, nBytes, cudaMemcpyDeviceToHost);
-
-
-
-	
+	cudaMemcpy(plain_text_hex, bufferGPU, nBytes, cudaMemcpyDeviceToHost);
 
 	cudaFree(bufferGPU);
-	allTestSuccess = allTestSuccess && checkResult(buffer[0]);
+	allTestSuccess = allTestSuccess && checkResult(plain_text_hex[0]);
 
 }
 
@@ -588,6 +600,8 @@ int main(int argc, char** argv) {
 	}
 
 
+
+
 	readKey("key.txt");
 	expand_key(password);
 
@@ -604,6 +618,7 @@ int main(int argc, char** argv) {
 	test_sizes[5] = vector_dim * 8192;
 	test_sizes[6] = vector_dim * 16384;
 
+
 	long double *test_res = (long double*)malloc(num_test * sizeof(long double));
 	for (int cur_test = 0; cur_test < num_test; cur_test++)	{
 		long dim_test = test_sizes[cur_test] / 2;
@@ -619,8 +634,8 @@ int main(int argc, char** argv) {
 
 			//printStateInline(state);
 
-			AES_Encrypt(show_all, collect_data, plain_text,128);
-			
+			AES_Encrypt(show_all, collect_data, plain_text, 128);
+
 
 			//printStateInline(state);
 
@@ -630,15 +645,18 @@ int main(int argc, char** argv) {
 		long double elapsed_time = (stop - start) / (double) CLOCKS_PER_SEC;
 		test_res[cur_test] = elapsed_time;
 		printf("Risultato test: %d\n", allTestSuccess );
+		printStateInline(plain_text_hex[0]);
 	}
 
 
-	char string_data[5000];
-	for (int i = 0; i < num_test; ++i)	{
-		char temp[100];
-		sprintf(temp, "%d	%f\n", test_sizes[i] / 2, test_res[i]);
-		strcat(string_data, temp);
+	if (collect_data) {
+		char string_data[5000];
+		for (int i = 0; i < num_test; ++i)	{
+			char temp[100];
+			sprintf(temp, "%d	%f\n", test_sizes[i] / 2, test_res[i]);
+			strcat(string_data, temp);
+		}
+		fprintf(data, "%s", string_data);
 	}
 
-	if (collect_data) fprintf(data, "%s", string_data);
 }
