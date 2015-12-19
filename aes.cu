@@ -12,6 +12,7 @@
 #define TxB 4
 #define N 4
 #define M 4
+#define stateDIm 16
 typedef unsigned char uChar;
 
 
@@ -148,16 +149,16 @@ uChar password[16];
 uChar expanded_key[176]; //chiave calcolata dallo schedule key
 
 //this will be send to the
-uChar **plain_text_hex;
+uChar *plain_text_hex;
 
 
 //----------------------FUNZIONI AUSILIARIE---------------
 
 
-void printStateInline(uChar* matrix) {
+void printStateInline(uChar* matrix, int state) {
 	for (int i = 0; i < 16; i++) {
 
-		printf("%02x", matrix[i]);
+		printf("%02x", matrix[(state * stateDIm) + i]);
 
 	}
 	printf("\n");
@@ -204,7 +205,9 @@ void initStateHex( int state_selected ) {
 	int i = 0;
 	while (i < (16 * 2)) {
 		//printf("(%2x)\n", getVal(plain_text[ i + 1])+ getVal(plain_text[ i]) * 16);
-		plain_text_hex[state_selected][i / 2] = getVal(plain_text[(k * 32) + i]) * 16 + getVal(plain_text[(k * 32) + i + 1]);
+		//int val = getVal(plain_text[(k * 32) + i]) * 16 + getVal(plain_text[(k * 32) + i + 1]);
+		plain_text_hex[(state_selected * stateDIm) + i / 2] = getVal(plain_text[(k * 32) + i]) * 16 + getVal(plain_text[(k * 32) + i + 1]);
+		//sprintf(plain_text_hex[(state_selected * stateDIm) + i / 2], "%u", val);
 		//printf("%2x\n", state[i/2] );
 		i += 2;
 	}
@@ -322,7 +325,7 @@ __device__ void subBytes(uChar* state) {
 }
 
 //FUNZIONA
-__device__ void addRoundKey(uChar** bufferGPU, int cur_round, uChar* expanded_keyGPU) {
+__device__ void addRoundKey(uChar* bufferGPU, int cur_round, uChar* expanded_keyGPU) {
 	
 	int Row = threadIdx.y;
 	int Col = threadIdx.x;
@@ -332,10 +335,11 @@ __device__ void addRoundKey(uChar** bufferGPU, int cur_round, uChar* expanded_ke
 
 	printf("var: %2x\n", state[index] );
 	printf("qualcosa :%2x\n", state[index] );*/
-	printf("%2x\n", bufferGPU[blockIdx.x][0] );
+	//printf("%2x\n", bufferGPU[(blockIdx.x*stateDIm)+index] );
 	int val = (cur_round * 16) + index;
 
-	bufferGPU[blockIdx.x][index] = bufferGPU[blockIdx.x][index] ^ expanded_keyGPU[val];
+	bufferGPU[(blockIdx.x*stateDIm)+index] = bufferGPU[(blockIdx.x*stateDIm)+index] ^ expanded_keyGPU[val];
+	//printf("%2x\n", bufferGPU[(blockIdx.x*stateDIm)+index]);
 
 
 }
@@ -399,7 +403,7 @@ __device__ void shiftRows(uChar *state) {
 	}
 }
 //-----------------------------------------------------------------
-__global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded_keyGPU) {
+__global__ void AESEncryptKernel(int show_all, uChar* stateGPU, uChar* expanded_keyGPU) {
 
 
 
@@ -409,7 +413,7 @@ __global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded
 	addRoundKey(stateGPU, cur_round, expanded_keyGPU);
 
 
-	__syncthreads();
+	/*__syncthreads();
 	if (show_all) {
 		printf("After addRroundKey\n");
 		//printState(dev_state);
@@ -479,13 +483,14 @@ __global__ void AESEncryptKernel(int show_all, uChar** stateGPU, uChar* expanded
 
 	addRoundKey(stateGPU, cur_round, expanded_keyGPU);
 	__syncthreads();
+	*/
 }
 
-int checkResult(uChar * state) {
+int checkResult(uChar *plain_text, int state) {
 	uChar result[] = "\x3a\xd7\x7b\xb4\x0d\x7a\x36\x60\xa8\x9e\xca\xf3\x24\x66\xef\x97";
 	for (int i = 0; i < 16; ++i)
 	{
-		if (state[i] != result[i]) return 0;
+		if (plain_text[(state*stateDIm)+i] != result[i]) return 0;
 
 	}
 	//uChar *result[33] = "3ad77bb40d7a3660a89ecaf32466ef97";
@@ -501,20 +506,20 @@ void AES_Encrypt(int show_all, int collect_data, uChar* plain_text, int state_nu
 
 	//----------VARIABILI GPU
 	uChar *expanded_keyGPU;
-	uChar **bufferGPU;
+	uChar *bufferGPU;
 
-	plain_text_hex = (uChar**)calloc(state_num, sizeof(uChar*));
+	plain_text_hex = (uChar*)calloc(state_num*stateDIm, sizeof(uChar));
 
 
 	for (int i = 0; i < state_num; i++) {
-		plain_text_hex[i] = (uChar*)calloc(16, sizeof(uChar));
 		initStateHex(i);
-		//printStateInline(plain_text_hex[i]);
+		
 	}
+
 
 	
 	//clock_t start, stop;
-	int nBytes = state_num * 16 * sizeof(uChar);
+	int nBytes = state_num * 16 ;
 	// set up device
 	float dev = 0;
 	cudaSetDevice(dev);
@@ -534,8 +539,13 @@ void AES_Encrypt(int show_all, int collect_data, uChar* plain_text, int state_nu
 
 	cudaMemcpy(plain_text_hex, bufferGPU, nBytes, cudaMemcpyDeviceToHost);
 
+	//printStateInline(plain_text_hex, 0);
 	cudaFree(bufferGPU);
-	allTestSuccess = allTestSuccess && checkResult(plain_text_hex[0]);
+	for (int i = 0; i < state_num; ++i)
+	{
+		allTestSuccess = allTestSuccess && checkResult(plain_text_hex, i);
+	}
+	
 
 }
 
@@ -645,7 +655,7 @@ int main(int argc, char** argv) {
 		long double elapsed_time = (stop - start) / (double) CLOCKS_PER_SEC;
 		test_res[cur_test] = elapsed_time;
 		printf("Risultato test: %d\n", allTestSuccess );
-		printStateInline(plain_text_hex[0]);
+		printStateInline(plain_text_hex,0);
 	}
 
 
