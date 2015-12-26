@@ -315,8 +315,6 @@ __device__ void subBytes(uChar* state) {
 	sbox_r = (state[Col * M + Row] & 0xf0) >> 4;
 	sbox_c = state[Col * M + Row] & 0x0f;
 	state[Col * M + Row] = CUDASBOX[sbox_r * 16 + sbox_c];
-
-
 }
 
 //FUNZIONA
@@ -326,18 +324,23 @@ __device__ void addRoundKey(uChar* state, int cur_round, uChar* expanded_keyGPU)
 	int index = Col * M + Row;
 	int val = (cur_round * 16) + index;
 
-	state[index] = state[index] ^ expanded_keyGPU[val];
+
+	//bufferGPU[(blockIdx.x*stateDIm)+index] = bufferGPU[(blockIdx.x*stateDIm)+index] ^ expanded_keyGPU[val];
+	printf("%2x\n", bufferGPU[(blockIdx.x*stateDIm)+index]);
+
 
 }
 
 
-//FUNZIONa
-__device__ void gmixColumns(uChar* state) {
-	int r = blockIdx.y * blockDim.y + threadIdx.y;
-	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+
+//FUNZIONA
+__device__ void gmixColumns(uChar* bufferGPU) {
+
+	int r = threadIdx.y;
+	int Col = threadIdx.x;
+
 	int index = Col * M + r;
 	uChar new_val;
-
 
 	if (r == 0) {
 		new_val = GM2[state[0 + Col * 4]] ^ GM3[state[1 + Col * 4]] ^ state[2 + Col * 4] ^ state[3 + Col * 4];
