@@ -4,9 +4,14 @@
 \contentsline {paragraph}{}{2}
 \contentsline {paragraph}{}{2}
 \contentsline {chapter}{\numberline {2}Advanced Encryption Standard (AES)}{3}
+\contentsline {section}{\numberline {2.1}Caratteristiche}{3}
 \contentsline {paragraph}{}{3}
-\contentsline {section}{\numberline {2.1}Descrizione dell'algoritmo}{3}
-\contentsline {chapter}{\numberline {3}Architettura CUDA}{4}
-\contentsline {chapter}{\numberline {4}Parallelizzazione AES in CUDA}{5}
-\contentsline {chapter}{\numberline {5}Risultati}{6}
-\contentsline {chapter}{\numberline {6}Considerazioni}{7}
+\contentsline {subsection}{\numberline {2.1.1} La chiave di sessione}{3}
+\contentsline {subsection}{\numberline {2.1.2}Lo stato}{3}
+\contentsline {section}{\numberline {2.2}Descrizione dell'algoritmo}{4}
+\contentsline {subsection}{\numberline {2.2.1}Descrizione ad alto livello}{4}
+\contentsline {subsection}{\numberline {2.2.2}AddRoundKey}{5}
+\contentsline {chapter}{\numberline {3}Architettura CUDA}{6}
+\contentsline {chapter}{\numberline {4}Parallelizzazione AES in CUDA}{7}
+\contentsline {chapter}{\numberline {5}Risultati}{8}
+\contentsline {chapter}{\numberline {6}Considerazioni}{9}

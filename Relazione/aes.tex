@@ -1,8 +1,64 @@
 \chapter{Advanced Encryption Standard (AES)}
+
+\section{Caratteristiche}
 Sviluppato dai due crittografi belgi Joan Daemen e Vincent Rijmen l'Advanced Encryption Standard (AES), conosciuto anche come Rijndael, di cui più propriamente è una specifica implementazione, è un algoritmo di cifratura a blocchi utilizzato come standard dal governo degli Stati Uniti d'America. 
 
 \paragraph{}
 Data la sua sicurezza e le sue specifiche pubbliche si presume che in un prossimo futuro venga utilizzato in tutto il mondo come è successo al suo predecessore, il Data Encryption Standard (DES) che ha perso poi efficacia per vulnerabilità intrinseche. AES è stato adottato dalla National Institute of Standards and Technology (NIST) e dalla US FIPS PUB nel novembre del 2001 dopo 5 anni di studi, standardizzazioni e selezione finale tra i vari algoritmi proposti.
 
-\section{Descrizione dell'algoritmo}
+\subsection{ La chiave di sessione}
+AES  usa un \textbf{key schedule} per espandere una chiave primaria corta in un certo numero di chiavi di \textbf{ciclo} differenti. 
+
+\subsection{Lo stato}
 AES opera utilizzando matrici di 4x4 byte chiamate \textbf{stati}. Quando l'algoritmo ha blocchi di 128 bit in input, la matrice di stato ha 4 righe e 4 colonne; se il numero di blocchi in input diventa di 32 bit più lungo, viene aggiunta una colonna allo stato, e così via fino a 256 bit. In pratica, si divide il numero di bit del blocco in input per 32 e il quoziente specifica il numero di colonne.
+
+\section{Descrizione dell'algoritmo}
+L'algoritmo sfrutta diverse funzioni che modificano i valori della matrice di stato mantenendone però la dimensione. Le singole funzioni vengono poi ripetute in un certo ordine per costruire l'algoritmo vero e proprio.
+
+\subsection{Descrizione ad alto livello}
+KeyExpansions—round keys are derived from the cipher key using Rijndael's key schedule. AES requires a separate 128-bit round key block for each round plus one more.
+InitialRound
+AddRoundKey—each byte of the state is combined with a block of the round key using bitwise xor.
+Rounds
+SubBytes—a non-linear substitution step where each byte is replaced with another according to a lookup table.
+ShiftRows—a transposition step where the last three rows of the state are shifted cyclically a certain number of steps.
+MixColumns—a mixing operation which operates on the columns of the state, combining the four bytes in each column.
+AddRoundKey
+Final Round (no MixColumns)
+SubBytes
+ShiftRows
+AddRoundKey.
+
+\begin{enumerate}
+\item \textbf{KeyExpansions} La chiave di cifratura viene espansa dal key schedule per generare una chiave più grande contenente tutte le chiavi di ciclo.
+\item \textbf{Round iniziale}
+\begin{enumerate}
+\item \textit{AddRoundKey} Ogni byte dello stato viene combinato con il byte corrispondente della chiave di ciclo tramite uno XOR
+\end{enumerate}
+\item \textbf{Rounds}
+\begin{enumerate}
+\item \textit{SubBytes} Ogni byte viene sostituito con un altro secondo delle tabelle.
+\item \textit{ShiftRows} Una trasposizione dove le ultime tre righe dello stato sono shiftate a sinistra un certo numero di volte.
+\item \textit{MixColumns} Opera sulle colonne combinandone i byte.
+\item \textit{AddRoundKey}
+\end{enumerate}
+\item \textbf{Round Finale (senza MixColumns)}
+\begin{enumerate}
+\item \textit{SubBytes}
+\item \textit{ShiftRows}
+\item \textit{AddRoundKey}
+\end{enumerate}
+\end{enumerate}
+
+
+
+
+\subsection{AddRoundKey}
+Nella fase AddRoundKey, la chiave di sessione viene combinata con lo stato. Per ogni round viene derivata una sottochiave dalla chiave originaria usando il key schedule; ogni sottochiave è della stessa dimensione dello stato. La sottochiave è aggiunta allo stato combinando ogni byte di questo con il corrispondente byte della chiave con uno \textbf{XOR}. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{img/addroundkey}
+\caption{Nel passaggio AddRoundKeys ogni byte della matrice viene combinato con la sua sottochiave tramite un'operazione di XOR.}
+\end{figure}
+
