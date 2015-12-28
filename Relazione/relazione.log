@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2015.7.16)  27 DEC 2015 17:08
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2015.7.16)  27 DEC 2015 18:19
 entering extended mode
 **relazione.tex
 (relazione.tex
@@ -591,47 +591,70 @@ File: img/addroundkey.png Graphic file (type png)
 <use img/addroundkey.png>
 Package pdftex.def Info: img/addroundkey.png used on input line 61.
 (pdftex.def)             Requested size: 240.90186pt x 187.3012pt.
-) (cuda.tex [5 <./img/addroundkey.png>]
+ <img/subBytes.png, id=26, 813.0375pt x 421.575pt>
+File: img/subBytes.png Graphic file (type png)
+
+<use img/subBytes.png>
+Package pdftex.def Info: img/subBytes.png used on input line 76.
+(pdftex.def)             Requested size: 243.91313pt x 126.47346pt.
+ [5 <./img/addroundkey.png>]
+<img/shiftRows.png, id=34, 813.0375pt x 301.125pt>
+File: img/shiftRows.png Graphic file (type png)
+ <use img/shiftRows.png>
+Package pdftex.def Info: img/shiftRows.png used on input line 89.
+(pdftex.def)             Requested size: 243.91313pt x 90.33818pt.
+
+<img/mixColumns.png, id=35, 813.0375pt x 431.6125pt>
+File: img/mixColumns.png Graphic file (type png)
+ <use img/mixColumns.png>
+Package pdftex.def Info: img/mixColumns.png used on input line 100.
+(pdftex.def)             Requested size: 243.91313pt x 129.48474pt.
+)
+(cuda.tex [6 <./img/subBytes.png> <./img/shiftRows.png>] [7 <./img/mixColumns.p
+ng>]
 Capitolo 3.
-) (cuda_aes.tex [6
+) (cuda_aes.tex [8
 
 ]
 Capitolo 4.
-) (risultati.tex [7
+) (risultati.tex [9
 
 ]
 Capitolo 5.
-) (considerazioni.tex [8
+) (considerazioni.tex [10
 
 ]
 Capitolo 6.
-) (bibliografia.tex [9
+) (bibliografia.tex [11
 
 ])
 
 Package caption Warning: Unused \captionsetup[table] on input line 15.
 See the caption package documentation for explanation.
 
-[10
+[12
 
 
 ] (relazione.aux) ) 
 Here is how much of TeX's memory you used:
- 6196 strings out of 493671
- 87182 string characters out of 3143859
+ 6212 strings out of 493671
+ 87490 string characters out of 3143859
  163987 words of memory out of 3000000
- 9415 multiletter control sequences out of 15000+200000
+ 9428 multiletter control sequences out of 15000+200000
  9458 words of font info for 35 fonts, out of 3000000 for 9000
  1025 hyphenation exceptions out of 8191
- 36i,8n,40p,796b,301s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 36i,8n,40p,796b,310s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/
 cmbx10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.p
-fb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Pr
-ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsl10.pfb><C:/Program Fi
-les/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on relazione.pdf (11 pages, 365128 bytes).
+fb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/P
+rogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Program Fi
+les/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTe
+X 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Program Files/MiKTeX 2.9/font
+s/type1/public/amsfonts/cm/cmsl10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/
+public/amsfonts/cm/cmti10.pfb>
+Output written on relazione.pdf (13 pages, 503043 bytes).
 PDF statistics:
- 63 PDF objects out of 1000 (max. 8388607)
+ 88 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

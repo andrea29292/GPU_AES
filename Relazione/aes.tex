@@ -62,3 +62,41 @@ Nella fase AddRoundKey, la chiave di sessione viene combinata con lo stato. Per 
 \caption{Nel passaggio AddRoundKeys ogni byte della matrice viene combinato con la sua sottochiave tramite un'operazione di XOR.}
 \end{figure}
 
+\subsection{SubBytes}
+In SubBytes ogni byte \(a_{i,j}\) della matrice di stato è sostituito con il corrispondente byte di una matrice chiamata  \textbf{S-box}.
+\begin{center}
+\(b_{i,j} = S(a_{i,j})\)
+\end{center}
+
+Questa operazione garantisce la non-linearità della cifratura. 
+La S-box utilizzata è derivata da una funzione inversa nel campo finito GF(\(2^8\)), conosciuta per avere delle ottime proprietà di non linearità. Per evitare un potenziale attacco basato sulle proprietà algebriche la S-box è costruita combinando la funzione inversa con una trasformazione affine invertibile. La S-box è stata scelta con cura per non possedere né punti fissi né punti fissi opposti.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{img/subBytes}
+\caption{Nel passaggio SubBytes, ogni byte della matrice è sostituito con i dati contenuti nella trasformazione S; \(b_{ij} = S(a_{ij})\).}
+\end{figure}
+
+\subsection{ShiftRows}
+ShiftRows opera sulle righe dello stato shiftando ciclicamente i byte di ogni riga di un certo offset dipendente dal numero di riga lasciando la prima riga invariata.
+Ogni byte della seconda riga è ciclicamente spostato a sinistra di una posizione. Similmente i byte della terza riga sono shiftati ciclicamente a sinistra di due posizioni e quelli della quarta di tre. 
+
+In questo modo l'ultima colonna dei dati in ingresso andrà a formare la diagonale della matrice in uscita. (Rijndael utilizza un disegno leggermente diverso per via delle matrici di lunghezza non fissa.)
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{img/shiftRows}
+\caption{Nel passaggio ShiftRows, i byte di ogni riga vengono spostati verso sinistra dell'ordine della riga. Vedi figura per i singoli spostamenti.}
+\end{figure}
+
+\subsection{MixColumns}
+Il passaggio MixColumns prende i quattro byte di ogni colonna e li combina utilizzando una trasformazione lineare invertibile. Utilizzati in congiunzione, ShiftRows e MixColumns provvedono a far rispettare il criterio di confusione e diffusione nell'algoritmo (teoria di Shannon). Ogni colonna è trattata come un polinomio in \(GF(2^8)\) e viene moltiplicata modulo \(x^4+1\) per un polinomio fisso \(c(x)=3x^3+x^2+x+2\).
+
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{img/mixColumns}
+\caption{Nel passaggio MixColumns ogni colonna di byte viene moltiplicata per un polinomio fisso \(c(x)\).}
+\end{figure}
