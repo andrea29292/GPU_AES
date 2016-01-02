@@ -7,27 +7,35 @@ Sviluppato dai due crittografi belgi Joan Daemen e Vincent Rijmen l'Advanced Enc
 Data la sua sicurezza e le sue specifiche pubbliche si presume che in un prossimo futuro venga utilizzato in tutto il mondo come è successo al suo predecessore, il Data Encryption Standard (DES) che ha perso poi efficacia per vulnerabilità intrinseche. AES è stato adottato dalla National Institute of Standards and Technology (NIST) e dalla US FIPS PUB nel novembre del 2001 dopo 5 anni di studi, standardizzazioni e selezione finale tra i vari algoritmi proposti.
 
 \subsection{ La chiave di sessione}
-AES  usa un \textbf{key schedule} per espandere una chiave primaria corta in un certo numero di chiavi di \textbf{ciclo} differenti. 
+AES  usa un \textbf{key schedule} per espandere una chiave primaria corta in un certo numero di chiavi di \textbf{ciclo} differenti. La lunghezza della chiave ricavata dipende dal livello di sicurezza con cui vogliamo criptare i dati.
+\paragraph{}
+Per il livello SECRET è sufficiente una chiave a 128 bit mentre per il livello Top secret si consigliano chiavi a 192 o 256 bit. Questo significa che per la prima volta il pubblico ha accesso ad una tecnologia crittografica che NSA ritiene adeguata per proteggere i documenti TOP SECRET. Si è discusso sulla necessità di utilizzare chiavi lunghe (192 o 256 bit) per i documenti TOP SECRET. Alcuni ritengono che questo indichi che l'NSA ha individuato un potenziale attacco che potrebbe forzare una chiave relativamente corta (128 bit), mentre la maggior parte degli esperti ritiene che le raccomandazioni della NSA siano basate principalmente sul volersi garantire un elevato margine di sicurezza per i prossimi decenni contro un potenziale attacco esaustivo.
+
 
 \subsection{Lo stato}
-AES opera utilizzando matrici di 4x4 byte chiamate \textbf{stati}. Quando l'algoritmo ha blocchi di 128 bit in input, la matrice di stato ha 4 righe e 4 colonne; se il numero di blocchi in input diventa di 32 bit più lungo, viene aggiunta una colonna allo stato, e così via fino a 256 bit. In pratica, si divide il numero di bit del blocco in input per 32 e il quoziente specifica il numero di colonne.
+A differenza di \textbf{Rijndael}, algoritmo da cui AES deriva e che utilizza blocchi multipli di 32 bit a partire da 128 fino ad arrivare a 256, AES utilizza matrici di 4x4 byte chiamate \textbf{stati}.
+\paragraph{} Dati 16 bit di informazione \(b_0,b_1,...,b_15\), verranno disposti nella matrice come segue
+\(
+\begin{bmatrix}
+b_0 & b_4 & b_8 & b_{12} \\
+b_1 & b_5 & b_9 & b_{13} \\
+b_2 & b_6 & b_{10} & b_{14} \\
+b_3 & b_7 & b_{11} & b_{15}
+\end{bmatrix}
+\)
 
 \section{Descrizione dell'algoritmo}
-L'algoritmo sfrutta diverse funzioni che modificano i valori della matrice di stato mantenendone però la dimensione. Le singole funzioni vengono poi ripetute in un certo ordine per costruire l'algoritmo vero e proprio.
+L'algoritmo sfrutta diverse funzioni che modificano i valori della matrice di stato mantenendone però la dimensione. 
+\paragraph{}
+L'AES effettua:
+\begin{itemize}
+\item 10 round per la chiave a 128 bit
+\item 12 round per la chiave a 192 bit
+\item 14 round per la chiave a 256 bit
+\end{itemize}
 
-\subsection{Descrizione ad alto livello}
-KeyExpansions—round keys are derived from the cipher key using Rijndael's key schedule. AES requires a separate 128-bit round key block for each round plus one more.
-InitialRound
-AddRoundKey—each byte of the state is combined with a block of the round key using bitwise xor.
-Rounds
-SubBytes—a non-linear substitution step where each byte is replaced with another according to a lookup table.
-ShiftRows—a transposition step where the last three rows of the state are shifted cyclically a certain number of steps.
-MixColumns—a mixing operation which operates on the columns of the state, combining the four bytes in each column.
-AddRoundKey
-Final Round (no MixColumns)
-SubBytes
-ShiftRows
-AddRoundKey.
+Ogni round consiste in diversi step, ognuno dei quali contiene  a sua volta quattro diverse fasi, inclusa una che sfrutta la chiave di ciclo. Questo consente di passare da un testo in chiaro \textit{plaintext} a un testo cifrato \textit{ciphertest}.
+
 
 \begin{enumerate}
 \item \textbf{KeyExpansions} La chiave di cifratura viene espansa dal key schedule per generare una chiave più grande contenente tutte le chiavi di ciclo.
