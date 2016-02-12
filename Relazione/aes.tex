@@ -15,6 +15,9 @@ Per il livello SECRET è sufficiente una chiave a 128 bit mentre per il livello 
 \subsection{Lo stato}
 A differenza di \textbf{Rijndael}, algoritmo da cui AES deriva e che utilizza blocchi multipli di 32 bit a partire da 128 fino ad arrivare a 256, AES utilizza matrici di 4x4 byte chiamate \textbf{stati}.
 \paragraph{} Dati 16 bit di informazione \(b_0,b_1,...,b_15\), verranno disposti nella matrice come segue
+
+\begin{table}[H]
+\centering
 \(
 \begin{bmatrix}
 b_0 & b_4 & b_8 & b_{12} \\
@@ -23,6 +26,8 @@ b_2 & b_6 & b_{10} & b_{14} \\
 b_3 & b_7 & b_{11} & b_{15}
 \end{bmatrix}
 \)
+\end{table}
+
 
 \section{Descrizione dell'algoritmo}
 L'algoritmo sfrutta diverse funzioni che modificano i valori della matrice di stato mantenendone però la dimensione. 

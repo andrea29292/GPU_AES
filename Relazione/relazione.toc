@@ -13,12 +13,16 @@
 \contentsline {section}{\numberline {2.2}Descrizione dell'algoritmo}{4}
 \contentsline {paragraph}{}{4}
 \contentsline {subsection}{\numberline {2.2.1}AddRoundKey}{5}
-\contentsline {subsection}{\numberline {2.2.2}SubBytes}{5}
+\contentsline {subsection}{\numberline {2.2.2}SubBytes}{6}
 \contentsline {subsection}{\numberline {2.2.3}ShiftRows}{6}
 \contentsline {subsection}{\numberline {2.2.4}MixColumns}{7}
 \contentsline {chapter}{\numberline {3}Architettura CUDA}{8}
 \contentsline {section}{\numberline {3.1}Cos'\IeC {\`e} CUDA}{8}
 \contentsline {paragraph}{}{8}
-\contentsline {chapter}{\numberline {4}Parallelizzazione AES in CUDA}{10}
-\contentsline {chapter}{\numberline {5}Risultati}{11}
-\contentsline {chapter}{\numberline {6}Considerazioni}{12}
+\contentsline {section}{\numberline {3.2}Il modello di programmazione CUDA}{9}
+\contentsline {subsection}{\numberline {3.2.1}Struttura di un programma CUDA}{10}
+\contentsline {subsubsection}{Kernel}{10}
+\contentsline {subsection}{\numberline {3.2.2}Flusso tipico}{11}
+\contentsline {chapter}{\numberline {4}Parallelizzazione AES in CUDA}{13}
+\contentsline {chapter}{\numberline {5}Risultati}{14}
+\contentsline {chapter}{\numberline {6}Considerazioni}{15}
