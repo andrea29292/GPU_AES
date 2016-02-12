@@ -318,15 +318,15 @@ __device__ void subBytes(uChar* state) {
 }
 
 //FUNZIONA
-__device__ void addRoundKey(uChar* state, int cur_round, uChar* expanded_keyGPU) {
+__device__ void addRoundKey(uChar* bufferGPU, int cur_round, uChar* expanded_keyGPU) {
 	int Row = blockIdx.y * blockDim.y + threadIdx.y;
 	int Col = blockIdx.x * blockDim.x + threadIdx.x;
 	int index = Col * M + Row;
 	int val = (cur_round * 16) + index;
 
 
-	//bufferGPU[(blockIdx.x*stateDIm)+index] = bufferGPU[(blockIdx.x*stateDIm)+index] ^ expanded_keyGPU[val];
-	printf("%2x\n", bufferGPU[(blockIdx.x*stateDIm)+index]);
+	bufferGPU[(blockIdx.x*cur_round)+index] = bufferGPU[(blockIdx.x*cur_round)+index] ^ expanded_keyGPU[val];
+	//printf("%2x\n", bufferGPU[(blockIdx.x*stateDIm)+index]);
 
 
 }
@@ -334,7 +334,7 @@ __device__ void addRoundKey(uChar* state, int cur_round, uChar* expanded_keyGPU)
 
 
 //FUNZIONA
-__device__ void gmixColumns(uChar* bufferGPU) {
+__device__ void gmixColumns(uChar* state) {
 
 	int r = threadIdx.y;
 	int Col = threadIdx.x;
@@ -502,7 +502,7 @@ void AES_Encrypt(int show_all, int collect_data)
 
 
 
-	printStateInline(state);
+	//printStateInline(state);
 
 	cudaFree(stateGPU);
 
@@ -586,13 +586,16 @@ int main(int argc, char** argv) {
 
 	//numero di test da eseguire su diverse lunghezze
 	int vector_dim = 16 * 2;
-	int num_test = 4;
+	int num_test = 6;
 	long *test_sizes = (long*)malloc(num_test * sizeof(long));
 
 	test_sizes[0] = vector_dim * 128;
 	test_sizes[1] = vector_dim * 512;
 	test_sizes[2] = vector_dim * 1024;
 	test_sizes[3] = vector_dim * 2048;
+	test_sizes[4] = vector_dim * 4096;
+	test_sizes[5] = vector_dim * 8192;
+
 
 	long double *test_res = (long double*)malloc(num_test * sizeof(long double));
 	for (int cur_test = 0; cur_test < num_test; cur_test++)	{
