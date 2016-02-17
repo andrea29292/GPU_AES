@@ -24,5 +24,6 @@
 \contentsline {subsubsection}{Kernel}{10}
 \contentsline {subsection}{\numberline {3.2.2}Flusso tipico}{11}
 \contentsline {chapter}{\numberline {4}Parallelizzazione AES in CUDA}{13}
-\contentsline {chapter}{\numberline {5}Risultati}{14}
-\contentsline {chapter}{\numberline {6}Considerazioni}{15}
+\contentsline {paragraph}{Implementazione in C}{13}
+\contentsline {chapter}{\numberline {5}Risultati}{15}
+\contentsline {chapter}{\numberline {6}Considerazioni}{16}

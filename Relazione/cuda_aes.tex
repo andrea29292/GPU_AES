@@ -1,1 +1,23 @@
 \chapter{Parallelizzazione AES in CUDA}
+Per poter ottenere buoni risultati nel campo del GPU Computing c'è bisogno di un algoritmo che ci consenta un sufficiente grado di parallelizzazione.
+La scelta di AES infatti non è casuale: basti pensare a come l'algoritmo opera \textbf{indipendentemente} su uno stato o su un altro senza concatenare le due cose e subito ci accorgiamo che consente un alto grado di \textbf{parallelizzazione}.
+L'obiettivo del nostro progetto è quindi quello di dimostrare come l'alto grado di parallelizzazione offerta dall'architettura CUDA possa essere utile nell'algoritmo AES. 
+
+\paragraph{Implementazione in C}In una prima fase abbiamo sviluppato l'algoritmo in C per poterlo usare poi come confronto con la versione in CUDA. Sia la versione C che la versione CUDA seguono le seguenti fasi:
+\begin{itemize}
+\item Lettura del \textbf{plainText}, il testo in chiaro scritto in esadecimale
+\item Lettura di una chiave da 16 caratteri esadecimali e generazione di una chiave \textbf{estesa} da 176 sufficente per 11 round
+\item Separazione del plainText in stati da 16 elementi.
+\item Esecuzione dell'algoritmo su ogni stato
+\item Controllo della corretta esecuzione tramite confronto con vettore di test
+\item Salvataggio dei risultati per fattore tempo
+\end{itemize}
+
+Per quanto riguarda i risultati in fattore tempo questi vengono calcolati comprendendo non solo la fase vera e propria dell'esecuzione di AES ma anche quella di separazione degli stati visto che nel caso GPU questa comprende anche il passaggio dei dati da \textbf{host memory} (memoria centrale) a \textbf{GPU memory}. Abbiamo voluto includere nelle prestazioni questa fase considerando che la memoria è un noto \textit{bottleneck} da considerare.
+
+\section{Prima implementazione in CUDA}
+Una prima implementazione dell'algoritmo in CUDA non considerava una pluralità di stati ma si concentrava solo sulla parallelizzazione delle \textbf{funzioni interne} quali subBytes, addRoundKey ecc...
+Purtroppo i risultati furono scoraggianti, infatti nonostante fossimo riusciti a replicare il funzionamento di AES in CUDA verificandone il successo con il vettore di test, i tempi erano di molto peggiori rispetto alla versione C.
+\paragraph{Perchè?} 
+
+
