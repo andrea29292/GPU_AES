@@ -15,9 +15,37 @@ L'obiettivo del nostro progetto è quindi quello di dimostrare come l'alto grado
 
 Per quanto riguarda i risultati in fattore tempo questi vengono calcolati comprendendo non solo la fase vera e propria dell'esecuzione di AES ma anche quella di separazione degli stati visto che nel caso GPU questa comprende anche il passaggio dei dati da \textbf{host memory} (memoria centrale) a \textbf{GPU memory}. Abbiamo voluto includere nelle prestazioni questa fase considerando che la memoria è un noto \textit{bottleneck} da considerare.
 
-\section{Prima implementazione in CUDA}
+\section{Prima implementazione in CUDA - Un solo stato}
 Una prima implementazione dell'algoritmo in CUDA non considerava una pluralità di stati ma si concentrava solo sulla parallelizzazione delle \textbf{funzioni interne} quali subBytes, addRoundKey ecc...
 Purtroppo i risultati furono scoraggianti, infatti nonostante fossimo riusciti a replicare il funzionamento di AES in CUDA verificandone il successo con il vettore di test, i tempi erano di molto peggiori rispetto alla versione C.
-\paragraph{Perchè?} 
+\paragraph{Perchè?} Abbiamo pensato che un solo stato non fosse sufficiente per evidenziare un miglioramento nella nostra versione e che questo fosse dovuto proprio a un bottleneck della memoria.
 
+\section{Seconda implementazione in CUDA - Più stati}
+Sulla considerazione precedente abbiamo applicato l'algoritmo a più stati contemporaneamente criptando porzioni di testo maggiori e non più limitate a 16 caratteri esadecimali.
+In questo modo non solo abbiamo aumentato le dimensioni dei test ma abbiamo anche ottenuto una parallelizzazione più "esterna", in aggiunta a quella già implementata.
+
+\begin{lstlisting}[caption={Versione sequenziale di addROundKey}]
+void addRoundKey(uChar** state, int cur_round) {
+	for (int i = 0; i < columns; i++) {
+		for (int j = 0; j < rows; j++) {
+			int val = (cur_round * 16) + ((i * 4) + j);
+			state[j][i] = state[j][i] ^ expanded_key[val];
+
+		}
+	}
+	
+	\end{lstlisting}
+
+\begin{lstlisting}[caption={Versione parallela di addROundKey}]
+__device__ void addRoundKey(uChar* bufferGPU, int cur_round, uChar* expanded_keyGPU) {
+	int Row = blockIdx.y * blockDim.y + threadIdx.y;
+	int Col = blockIdx.x * blockDim.x + threadIdx.x;
+	int index = Col * M + Row;
+	int val = (cur_round * 16) + index;
+	bufferGPU[(blockIdx.x*cur_round)+index] = bufferGPU[(blockIdx.x*cur_round)+index] ^ expanded_keyGPU[val];
+	
+
+
+}
+\end{lstlisting}
 

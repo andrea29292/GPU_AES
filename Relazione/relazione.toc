@@ -25,5 +25,8 @@
 \contentsline {subsection}{\numberline {3.2.2}Flusso tipico}{11}
 \contentsline {chapter}{\numberline {4}Parallelizzazione AES in CUDA}{13}
 \contentsline {paragraph}{Implementazione in C}{13}
-\contentsline {chapter}{\numberline {5}Risultati}{15}
-\contentsline {chapter}{\numberline {6}Considerazioni}{16}
+\contentsline {section}{\numberline {4.1}Prima implementazione in CUDA - Un solo stato}{14}
+\contentsline {paragraph}{Perch\IeC {\`e}?}{14}
+\contentsline {section}{\numberline {4.2}Seconda implementazione in CUDA - Pi\IeC {\`u} stati}{14}
+\contentsline {chapter}{\numberline {5}Risultati}{16}
+\contentsline {chapter}{\numberline {6}Considerazioni}{17}
