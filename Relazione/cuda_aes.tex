@@ -24,7 +24,9 @@ Purtroppo i risultati furono scoraggianti, infatti nonostante fossimo riusciti a
 Sulla considerazione precedente abbiamo applicato l'algoritmo a più stati contemporaneamente criptando porzioni di testo maggiori e non più limitate a 16 caratteri esadecimali.
 In questo modo non solo abbiamo aumentato le dimensioni dei test ma abbiamo anche ottenuto una parallelizzazione più "esterna", in aggiunta a quella già implementata.
 
-\begin{lstlisting}[caption={Versione sequenziale di addROundKey}]
+Vediamo un esempio di come abbiamo parallelizzato le funzioni sugli stati utilizzate da AES.
+
+\begin{lstlisting}[caption={Versione sequenziale di addRoundKey}]
 void addRoundKey(uChar** state, int cur_round) {
 	for (int i = 0; i < columns; i++) {
 		for (int j = 0; j < rows; j++) {
@@ -36,16 +38,20 @@ void addRoundKey(uChar** state, int cur_round) {
 	
 	\end{lstlisting}
 
-\begin{lstlisting}[caption={Versione parallela di addROundKey}]
-__device__ void addRoundKey(uChar* bufferGPU, int cur_round, uChar* expanded_keyGPU) {
+\begin{lstlisting}[caption={Versione parallela di addRoundKey}]
+__device__ void addRoundKey(uChar* state, int cur_round, uChar* expanded_keyGPU) {
 	int Row = blockIdx.y * blockDim.y + threadIdx.y;
 	int Col = blockIdx.x * blockDim.x + threadIdx.x;
 	int index = Col * M + Row;
 	int val = (cur_round * 16) + index;
-	bufferGPU[(blockIdx.x*cur_round)+index] = bufferGPU[(blockIdx.x*cur_round)+index] ^ expanded_keyGPU[val];
-	
-
-
+	state[index] = state[index] ^ expanded_keyGPU[val];
 }
 \end{lstlisting}
 
+Nella versione sequenziale lo xor tra stato e chiave espansa viene effettuato con due cicli for con un costo di \(O(n)\) dove \(n\) è la dimensione dello stato quindi 16. Nella versione sequenziale, sfruttando i thread arriviamo invece ad un \(O(1)\)
+
+Purtroppo neanche questa versione è risultata conveniente dando risultati peggiori della versione C.
+
+\section{Ultima implementazione}
+Utilizzando Nsight ci siamo resi conto dell'alto numero di kernel che lanciavamo per ogni test considerando che ad ogni stato veniva lanciato un kernel e che eseguivamo test da un minimo di 15 mila stati circa fino a un massimo di 2 milioni circa. L'idea è stata quella di utilizzare un solo kernel con un sufficiente numero di thread da servire tutti gli stati.
+Questa soluzione si è poi rivelata quella vincente consentendoci di arrivare a un tempo più o meno \textbf{costante} di esecuzione e superando di parecchio la versione C, come vedremo nel prossimo capitolo.
